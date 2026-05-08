@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0F172A"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="TradeSim AI"/>
+<meta name="description" content="TradeSim AI — Continuous AI market analysis and day trading signals"/>
+<title>TradeSim AI</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#F8FAFC;--surface:#fff;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;
+  --green:#16A34A;--red:#DC2626;--amber:#D97706;--blue:#2563EB;
+  --nav-h:56px;--tab-h:56px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);}
+#root{height:100%;display:flex;flex-direction:column;}
+.nav{height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:.5rem;}
+.nav-icon{width:30px;height:30px;border-radius:8px;background:var(--text);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-family:'DM Mono',monospace;font-weight:700;}
+.nav-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;}
+.nav-title span{font-weight:400;color:var(--muted);}
+.nav-right{display:flex;align-items:center;gap:.4rem;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+.live-lbl{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);}
+.notif-btn{padding:.28rem .48rem;border-radius:.4rem;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;gap:.22rem;position:relative;transition:all .2s;}
+.notif-btn.on{border-color:#F59E0B;background:#FFFBEB;}
+.notif-dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#EF4444;border:2px solid #fff;animation:ping 1s infinite;}
+.widget-btn{padding:.28rem .55rem;border-radius:.4rem;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:.62rem;font-weight:700;font-family:'DM Mono',monospace;color:var(--muted);}
+.widget-btn.active{border-color:var(--blue);background:#EFF6FF;color:var(--blue);}
+.bottom-tabs{height:var(--tab-h);display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.12rem;cursor:pointer;border:none;background:none;color:var(--muted);font-size:.58rem;font-weight:600;transition:color .15s;padding:.4rem;}
+.tab-btn.active{color:var(--text);}
+.tab-btn .ticon{font-size:1.1rem;}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;}
+.sidebar{background:var(--surface);border-bottom:1px solid var(--border);}
+.grp-lbl{padding:.45rem 1rem .2rem;font-size:.56rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.1em;}
+.pills-row{display:flex;gap:.35rem;padding:.2rem 1rem .45rem;overflow-x:auto;scrollbar-width:none;}
+.pills-row::-webkit-scrollbar{display:none;}
+.pill{flex-shrink:0;padding:.35rem .6rem;border-radius:.5rem;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s;min-width:4.5rem;text-align:center;}
+.pill .pname{font-weight:700;font-size:.68rem;white-space:nowrap;}
+.pill .pchg{font-family:'DM Mono',monospace;font-size:.58rem;font-weight:600;}
+.analysis-wrap{padding:.75rem .9rem;display:flex;flex-direction:column;gap:.7rem;}
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:.6rem;padding:.7rem .85rem;}
+.sec-lbl{font-size:.56rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem;}
+.badge{padding:.18rem .5rem;border-radius:999px;font-family:'DM Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.04em;display:inline-block;}
+.pass-badge{padding:.13rem .42rem;border-radius:.3rem;background:#EFF6FF;color:#2563EB;font-family:'DM Mono',monospace;font-size:.58rem;font-weight:700;}
+.conf-wrap{display:flex;align-items:center;gap:.45rem;}
+.conf-bg{flex:1;height:4px;background:#F1F5F9;border-radius:4px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+.conf-pct{font-family:'DM Mono',monospace;font-size:.65rem;font-weight:700;min-width:2.2rem;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;}
+.pc{padding:.65rem .8rem;border-radius:.55rem;}
+.pc-lbl{font-size:.56rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.18rem;}
+.pc-val{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:700;}
+.ind-card{padding:.5rem .65rem;border-radius:.48rem;background:var(--surface);border:1px solid var(--border);}
+.ind-nm{font-size:.54rem;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.08rem;}
+.ind-v{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:700;margin-bottom:.08rem;}
+.ind-i{font-size:.6rem;color:var(--muted);line-height:1.3;}
+.li{display:flex;gap:.28rem;font-size:.68rem;color:#334155;line-height:1.4;margin-bottom:.22rem;}
+.trade-card{border-radius:.6rem;overflow:hidden;border:1px solid var(--border);background:var(--surface);}
+.trade-hdr{padding:.5rem .75rem;display:flex;justify-content:space-between;align-items:center;}
+.trade-dir{font-family:'DM Mono',monospace;font-weight:800;font-size:.68rem;letter-spacing:.06em;}
+.trade-sty{padding:.08rem .38rem;border-radius:999px;background:var(--surface);color:var(--muted);font-size:.56rem;font-weight:700;border:1px solid var(--border);}
+.trade-lvls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.38rem;padding:.55rem .75rem;}
+.lv-lbl{font-size:.54rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.18rem;}
+.lv-val{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:700;}
+.lv-sub{font-size:.56rem;color:#94A3B8;}
+.ctx-row{display:flex;gap:.28rem;flex-wrap:wrap;padding:0 .75rem .55rem;}
+.ctx-tag{padding:.16rem .42rem;border-radius:.28rem;background:#F8FAFC;border:1px solid var(--border);font-size:.58rem;color:#475569;}
+.trade-note{padding:0 .75rem .6rem;font-size:.65rem;color:var(--muted);font-style:italic;line-height:1.4;}
+.chat-wrap{display:flex;flex-direction:column;height:100%;}
+.chat-msgs{flex:1;overflow-y:auto;padding:.7rem .9rem;display:flex;flex-direction:column;gap:.5rem;}
+.msg{max-width:88%;padding:.48rem .72rem;font-size:.75rem;line-height:1.55;border-radius:1rem;}
+.msg.user{align-self:flex-end;background:var(--text);color:#fff;border-radius:1rem 1rem .25rem 1rem;}
+.msg.ai{align-self:flex-start;background:var(--surface);color:#334155;border:1px solid var(--border);border-radius:1rem 1rem 1rem .25rem;}
+.msg-lbl{font-size:.52rem;font-weight:700;color:#94A3B8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.18rem;}
+.quick-row{display:flex;gap:.28rem;flex-wrap:wrap;padding:.35rem .9rem;}
+.quick-btn{padding:.2rem .48rem;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:#475569;font-size:.6rem;cursor:pointer;font-family:inherit;}
+.cinput-row{display:flex;gap:.38rem;padding:.38rem .7rem .55rem;border-top:1px solid var(--border);}
+.cinput{flex:1;padding:.48rem .72rem;border-radius:.48rem;border:1.5px solid var(--border);font-size:.75rem;color:var(--text);outline:none;font-family:inherit;background:#FAFAFA;}
+.csend{padding:.48rem .85rem;border-radius:.48rem;border:none;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.widget{position:fixed;bottom:calc(var(--tab-h) + .7rem);right:.7rem;width:220px;background:rgba(15,23,42,.96);backdrop-filter:blur(12px);border-radius:.9rem;border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 32px rgba(0,0,0,.45);z-index:500;animation:slideUp .25s ease;overflow:hidden;}
+.wd-drag{padding:.4rem .7rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.07);cursor:grab;}
+.wd-title{font-family:'DM Mono',monospace;font-size:.58rem;color:rgba(255,255,255,.55);font-weight:700;letter-spacing:.08em;}
+.wd-close{background:none;border:none;color:rgba(255,255,255,.38);font-size:.78rem;cursor:pointer;line-height:1;}
+.wd-pair{padding:.48rem .7rem;}
+.wd-pair:not(:last-child){border-bottom:1px solid rgba(255,255,255,.05);}
+.wd-pair:last-child{padding-bottom:.62rem;}
+.wp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
+.wp-nm{font-weight:700;font-size:.7rem;color:#fff;}
+.wp-sig{font-family:'DM Mono',monospace;font-size:.58rem;font-weight:700;padding:.08rem .38rem;border-radius:999px;}
+.wp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.28rem;}
+.wp-cl{font-size:.5rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.08rem;font-weight:700;}
+.wp-cv{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:700;}
+.wp-cs{font-family:'DM Mono',monospace;font-size:.58rem;}
+.wp-mt{font-size:.62rem;color:rgba(255,255,255,.32);text-align:center;padding:.4rem 0;}
+.status-bar{display:flex;align-items:center;gap:.45rem;padding:.38rem .7rem;background:#F8FAFC;border:1px solid var(--border);border-radius:.42rem;flex-wrap:wrap;}
+.s-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.s-lbl{font-family:'DM Mono',monospace;font-size:.6rem;color:#475569;font-weight:600;flex:1;}
+.ctrl{padding:.16rem .46rem;border-radius:.28rem;font-size:.6rem;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--surface);}
+.sub-tabs{display:flex;gap:0;background:#F1F5F9;border-radius:.42rem;padding:.14rem;width:fit-content;}
+.sub-tab{padding:.26rem .7rem;border-radius:.3rem;border:none;font-size:.68rem;font-weight:400;cursor:pointer;transition:all .15s;font-family:inherit;background:transparent;color:var(--muted);}
+.sub-tab.active{background:#fff;color:var(--text);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.skel{border-radius:.52rem;background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+.empty-s{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;color:#CBD5E1;gap:.45rem;}
+.empty-i{font-size:2.2rem;}
+.empty-t{font-family:'DM Mono',monospace;font-size:.75rem;text-align:center;line-height:1.6;}
+.warn-box{padding:.5rem .75rem;border-radius:.48rem;background:#FFFBEB;border:1px solid #FDE68A;display:flex;gap:.38rem;align-items:flex-start;}
+.warn-t{font-size:.65rem;color:#92400E;line-height:1.5;}
+.hist-row{display:flex;align-items:center;gap:.45rem;margin-bottom:.28rem;}
+.hist-p{font-family:'DM Mono',monospace;font-size:.56rem;color:#94A3B8;min-width:1.6rem;}
+.ref-box{margin-top:.45rem;padding:.42rem .62rem;border-radius:.38rem;background:#EFF6FF;border:1px solid #BFDBFE;}
+.ref-lbl{font-size:.56rem;font-weight:700;color:var(--blue);margin-right:.28rem;}
+.ref-t{font-size:.65rem;color:#334155;}
+.toast-wrap{position:fixed;top:calc(var(--nav-h) + .45rem);right:.7rem;z-index:9999;display:flex;flex-direction:column;gap:.38rem;max-width:calc(100vw - 1.4rem);}
+.toast{padding:.6rem .8rem;border-radius:.6rem;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.15);animation:slideIn .25s ease;display:flex;gap:.5rem;align-items:flex-start;max-width:290px;}
+.t-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:.18rem;}
+.t-title{font-weight:700;font-size:.7rem;margin-bottom:.12rem;}
+.t-body{font-size:.65rem;color:#475569;line-height:1.4;}
+.t-time{font-size:.56rem;color:#94A3B8;font-family:'DM Mono',monospace;margin-top:.18rem;}
+.t-x{background:none;border:none;color:#94A3B8;cursor:pointer;font-size:.68rem;padding:0 .18rem;line-height:1;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes ping{0%{transform:scale(1);opacity:1}75%,100%{transform:scale(2.2);opacity:0}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes slideIn{from{opacity:0;transform:translateX(.8rem)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(.4rem)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-3px)}}
+.ld span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#CBD5E1;animation:bounce 1s infinite;margin-right:3px;}
+.ld span:nth-child(2){animation-delay:.15s;}
+.ld span:nth-child(3){animation-delay:.3s;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const INSTRUMENTS = [
+  { id:"gold",   name:"Gold",      symbol:"XAU/USD", unit:"oz",    price:2341.50,  change:+0.82, color:"#B8960C", bg:"#FEFCE8" },
+  { id:"silver", name:"Silver",    symbol:"XAG/USD", unit:"oz",    price:29.84,    change:-0.34, color:"#6B7280", bg:"#F9FAFB" },
+  { id:"copper", name:"Copper",    symbol:"HG1",     unit:"lb",    price:4.523,    change:+1.21, color:"#B45309", bg:"#FFFBEB" },
+  { id:"wti",    name:"WTI",       symbol:"CL1",     unit:"bbl",   price:78.42,    change:-0.67, color:"#1D4ED8", bg:"#EFF6FF" },
+  { id:"brent",  name:"Brent",     symbol:"BRENT",   unit:"bbl",   price:82.17,    change:-0.51, color:"#2563EB", bg:"#EFF6FF" },
+  { id:"natgas", name:"Nat Gas",   symbol:"NG1",     unit:"MMBtu", price:2.184,    change:+2.14, color:"#059669", bg:"#ECFDF5" },
+  { id:"us30",   name:"US 30",     symbol:"DJIA",    unit:"pts",   price:39127.80, change:+0.43, color:"#7C3AED", bg:"#F5F3FF" },
+  { id:"spx",    name:"S&P 500",   symbol:"SPX",     unit:"pts",   price:5248.49,  change:+0.57, color:"#0E7490", bg:"#ECFEFF" },
+];
+const GROUPS=[{label:"Metals",ids:["gold","silver","copper"]},{label:"Energy",ids:["wti","brent","natgas"]},{label:"Indices",ids:["us30","spx"]}];
+const TFS=["1H","4H","1D","1W"];
+const REFRESH_MS=90000, MAX_H=8;
+const IND_L={rsi:"RSI(14)",macd:"MACD",bb:"B.Bands",ema:"EMA X",vol:"Vol",obv:"OBV"};
+
+function fmtT(ts){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+function sC(s){if(!s)return"#94A3B8";if(s.includes("BUY"))return"#16A34A";if(s.includes("SELL"))return"#DC2626";return"#D97706";}
+function sL(s){return{STRONG_BUY:"Strong Buy",BUY:"Buy",HOLD:"Hold",SELL:"Sell",STRONG_SELL:"Strong Sell"}[s]||s;}
+function fP(v,u){if(v===undefined||v===null)return"—";if(u==="pts")return v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});if(v<10)return v.toFixed(4);return v.toFixed(2);}
+
+async function fetchAnalysis(inst,tf,prev=[]){
+  const hasPrev=prev.length>0;
+  const pc=hasPrev?"\n\nPREVIOUS PASSES:\n"+prev.map((a,i)=>`Pass ${i+1}: signal=${a.signal}, conf=${a.confidence}\n${a.summary}`).join("\n---\n")+"\n\nRefine genuinely. Adjust if warranted. Explain in refinementNote.":"";
+  const prompt=`Expert trading analyst AI. Continuous self-improving.
+Instrument: ${inst.name} (${inst.symbol}) | TF: ${tf} | Price: ~${inst.price} ${inst.unit} | Pass: ${prev.length+1}${pc}
+
+Return ONLY valid JSON:
+{"signal":"STRONG_BUY"|"BUY"|"HOLD"|"SELL"|"STRONG_SELL","confidence":<50-97>,"priceTarget":<n>,"stopLoss":<n>,"summary":"<2 sentences>","refinementNote":"${hasPrev?"<what changed>":"Initial pass."}","catalysts":["<c1>","<c2>","<c3>"],"risks":["<r1>","<r2>"],"indicators":{"rsi":{"value":<0-100>,"interpretation":"<t>"},"macd":{"value":"<t>","interpretation":"<t>"},"bb":{"value":"<t>","interpretation":"<t>"},"ema":{"value":"<t>","interpretation":"<t>"},"vol":{"value":"<t>","interpretation":"<t>"},"obv":{"value":"<t>","interpretation":"<t>"}},"dayTrades":[{"style":"Scalp"|"Day Trade"|"Momentum","direction":"LONG"|"SHORT","entryLow":<n>,"entryHigh":<n>,"stopLoss":<n>,"tp1":<n>,"tp2":<n>,"riskReward":<n>,"volumeContext":"<t>","volatilityContext":"<t>","timingContext":"<t>","note":"<1 sentence>"}]}
+Provide 2-3 dayTrades. Entry near current price. Logical SL. R:R realistic.`;
+  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1500,messages:[{role:"user",content:prompt}]})});
+  const data=await res.json();
+  const text=data.content?.map(b=>b.text||"").join("")||"";
+  const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
+  return{...parsed,timestamp:Date.now(),pass:prev.length+1};
+}
+
+function Widget({pairs,analyses,onClose}){
+  return(
+    <div className="widget">
+      <div className="wd-drag">
+        <span className="wd-title">◈ TRADESIM WIDGET</span>
+        <button className="wd-close" onClick={onClose}>✕</button>
+      </div>
+      {pairs.map((inst,idx)=>{
+        const a=analyses[inst?.id];
+        const trade=a?.dayTrades?.[0];
+        const sc=sC(a?.signal);
+        const sbg=a?.signal?.includes("BUY")?"rgba(22,163,74,.22)":a?.signal?.includes("SELL")?"rgba(220,38,38,.22)":"rgba(217,119,6,.22)";
+        return(
+          <div key={idx} className="wd-pair">
+            {inst?(
+              <>
+                <div className="wp-hdr">
+                  <span className="wp-nm">{inst.symbol}</span>
+                  {a?.signal&&<span className="wp-sig" style={{background:sbg,color:sc}}>{sL(a.signal)}</span>}
+                </div>
+                {trade?(
+                  <div className="wp-grid">
+                    <div><div className="wp-cl" style={{color:"rgba(255,255,255,.38)"}}>ENTRY</div><div className="wp-cv" style={{color:"#fff"}}>{fP(trade.entryLow,inst.unit)}</div><div className="wp-cs" style={{color:"rgba(255,255,255,.3)"}}>–{fP(trade.entryHigh,inst.unit)}</div></div>
+                    <div><div className="wp-cl" style={{color:"rgba(220,38,38,.7)"}}>SL</div><div className="wp-cv" style={{color:"#F87171"}}>{fP(trade.stopLoss,inst.unit)}</div><div className="wp-cs" style={{color:"rgba(255,255,255,.3)"}}>R:R {trade.riskReward}</div></div>
+                    <div><div className="wp-cl" style={{color:"rgba(22,163,74,.7)"}}>TP1/2</div><div className="wp-cv" style={{color:"#4ADE80"}}>{fP(trade.tp1,inst.unit)}</div><div className="wp-cs" style={{color:"#86EFAC"}}>{fP(trade.tp2,inst.unit)}</div></div>
+                  </div>
+                ):<div className="wp-mt">{a?"No setup yet":"Analysing…"}</div>}
+              </>
+            ):<div className="wp-mt">Slot {idx+1} — pick pair</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function AnalysisView({inst,tf,onTf,notifOn,onNewSignal}){
+  const [current,setCurrent]=useState(null);
+  const [history,setHistory]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [status,setStatus]=useState("idle");
+  const [cd,setCd]=useState(0);
+  const [showH,setShowH]=useState(false);
+  const [subTab,setSubTab]=useState("overview");
+  const storeRef=useRef({}),timerRef=useRef(null),countRef=useRef(null),activeKey=useRef(null),prevSig=useRef(null);
+  const key=inst?`${inst.id}-${tf}`:null;
+
+  const runPass=useCallback(async(k,i,t)=>{
+    if(!storeRef.current[k])storeRef.current[k]={current:null,history:[]};
+    const prev=storeRef.current[k].history;
+    setLoading(true);
+    try{
+      const result=await fetchAnalysis(i,t,prev);
+      const nh=[...prev,result].slice(-MAX_H);
+      storeRef.current[k]={current:result,history:nh};
+      if(activeKey.current===k){
+        if(prevSig.current!==null&&prevSig.current!==result.signal)onNewSignal({title:`${i.name} signal changed`,body:`${sL(prevSig.current)} → ${sL(result.signal)} · ${result.confidence}%`,color:sC(result.signal)});
+        else if(prevSig.current===null)onNewSignal({title:`${i.name} ready`,body:`${sL(result.signal)} · ${result.confidence}% · Pass ${result.pass}`,color:sC(result.signal)});
+        prevSig.current=result.signal;
+        setCurrent(result);setHistory(nh);
+      }
+    }catch(e){console.error(e);}
+    finally{setLoading(false);}
+  },[onNewSignal]);
+
+  const startLoop=useCallback((k,i,t)=>{
+    clearInterval(timerRef.current);clearInterval(countRef.current);
+    setStatus("running");setCd(REFRESH_MS/1000);
+    if(!storeRef.current[k]?.current)runPass(k,i,t);
+    timerRef.current=setInterval(()=>{if(activeKey.current===k)runPass(k,i,t);},REFRESH_MS);
+    countRef.current=setInterval(()=>setCd(p=>p<=1?REFRESH_MS/1000:p-1),1000);
+  },[runPass]);
+
+  useEffect(()=>{
+    if(!inst||!key)return;
+    activeKey.current=key;prevSig.current=null;
+    const cached=storeRef.current[key];
+    if(cached?.current){setCurrent(cached.current);setHistory(cached.history);prevSig.current=cached.current.signal;}
+    else{setCurrent(null);setHistory([]);}
+    startLoop(key,inst,tf);
+    return()=>{clearInterval(timerRef.current);clearInterval(countRef.current);};
+  },[inst?.id,tf]);
+
+  if(!inst)return(<div className="empty-s"><div className="empty-i">◈</div><div className="empty-t">Select an instrument above to begin continuous AI analysis</div></div>);
+  const ac=current?sC(current.signal):"#94A3B8";
+
+  return(
+    <div className="analysis-wrap">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:".35rem"}}>
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:".45rem",flexWrap:"wrap"}}>
+            <span style={{fontFamily:"'Playfair Display',serif",fontSize:"1.15rem",fontWeight:700}}>{inst.name}</span>
+            {current&&<span className="badge" style={{background:current.signal?.includes("BUY")?"#DCFCE7":current.signal?.includes("SELL")?"#FFE4E6":"#FEF9C3",color:current.signal?.includes("BUY")?"#15803D":current.signal?.includes("SELL")?"#B91C1C":"#A16207"}}>{sL(current.signal)}</span>}
+            {current&&<span className="pass-badge">pass {current.pass}</span>}
+          </div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:".62rem",color:"#94A3B8",marginTop:".12rem"}}>{inst.symbol} · {fP(inst.price,inst.unit)} /{inst.unit}</div>
+        </div>
+        <div style={{display:"flex",gap:".28rem",flexWrap:"wrap"}}>
+          {TFS.map(t=><button key={t} onClick={()=>onTf(t)} style={{padding:".2rem .48rem",borderRadius:".32rem",border:t===tf?`1.5px solid ${inst.color}`:"1.5px solid #E2E8F0",background:t===tf?inst.bg:"#fff",color:t===tf?inst.color:"#64748B",fontFamily:"'DM Mono',monospace",fontSize:".62rem",fontWeight:700,cursor:"pointer"}}>{t}</button>)}
+        </div>
+      </div>
+
+      <div className="status-bar">
+        <div className="s-dot" style={{background:status==="running"?"#16A34A":status==="paused"?"#D97706":"#94A3B8",animation:status==="running"?"pulse 2s infinite":"none"}}/>
+        <span className="s-lbl">{status==="running"?`LIVE · ${cd}s`:status==="paused"?"PAUSED":"IDLE"}{loading?" · analysing…":""}</span>
+        <button className="ctrl" onClick={()=>!loading&&runPass(key,inst,tf)} disabled={loading}>↻</button>
+        {status==="running"?<button className="ctrl" style={{color:"#D97706"}} onClick={()=>{clearInterval(timerRef.current);clearInterval(countRef.current);setStatus("paused");}}>⏸</button>:<button className="ctrl" style={{color:"#16A34A",borderColor:"#DCFCE7",background:"#F0FDF4"}} onClick={()=>startLoop(key,inst,tf)}>▶</button>}
+        <button className="ctrl" style={{color:showH?"#4338CA":"#64748B",borderColor:showH?"#C7D2FE":"#E2E8F0",background:showH?"#EEF2FF":"#fff"}} onClick={()=>setShowH(h=>!h)}>📜{history.length}</button>
+      </div>
+
+      {showH&&history.length>0&&(
+        <div className="sec-card">
+          <div className="sec-lbl">Signal Evolution</div>
+          {history.map((h,i)=>(
+            <div key={i} className="hist-row">
+              <span className="hist-p">#{h.pass}</span>
+              <span className="badge" style={{fontSize:".58rem",padding:".1rem .38rem",background:h.signal?.includes("BUY")?"#DCFCE7":h.signal?.includes("SELL")?"#FFE4E6":"#FEF9C3",color:h.signal?.includes("BUY")?"#15803D":h.signal?.includes("SELL")?"#B91C1C":"#A16207"}}>{sL(h.signal)}</span>
+              <div style={{flex:1,height:3,background:"#F1F5F9",borderRadius:2,overflow:"hidden"}}><div style={{width:`${h.confidence}%`,height:"100%",background:sC(h.signal),borderRadius:2}}/></div>
+              <span style={{fontFamily:"'DM Mono',monospace",fontSize:".53rem",color:"#94A3B8"}}>{fmtT(h.timestamp)}</span>
+            </div>
+          ))}
+          {history.length>1&&current?.refinementNote&&current.refinementNote!=="Initial pass."&&(<div className="ref-box"><span className="ref-lbl">Refinement:</span><span className="ref-t">{current.refinementNote}</span></div>)}
+        </div>
+      )}
+
+      {loading&&!current&&[5,3,6,3].map((h,i)=><div key={i} className="skel" style={{height:`${h}rem`,animationDelay:`${i*.1}s`}}/>)}
+
+      {current&&(<div className="sub-tabs"><button className={`sub-tab ${subTab==="overview"?"active":""}`} onClick={()=>setSubTab("overview")}>📈 Overview</button><button className={`sub-tab ${subTab==="scalping"?"active":""}`} onClick={()=>setSubTab("scalping")}>⚡ Day Trading</button></div>)}
+
+      {current&&subTab==="overview"&&(
+        <>
+          <div className="grid2">
+            {[{label:"Swing Target",val:fP(current.priceTarget,inst.unit),color:"#16A34A",bg:"#F0FDF4"},{label:"Swing Stop",val:fP(current.stopLoss,inst.unit),color:"#DC2626",bg:"#FFF1F2"}].map(item=>(
+              <div key={item.label} className="pc" style={{background:item.bg}}>
+                <div className="pc-lbl">{item.label}</div>
+                <div className="pc-val" style={{color:item.color}}>{item.val}<span style={{fontSize:".56rem",color:"#94A3B8",marginLeft:".22rem"}}>/{inst.unit}</span></div>
+              </div>
+            ))}
+          </div>
+          <div className="sec-card">
+            <div className="sec-lbl">AI Confidence — pass {current.pass}</div>
+            <div className="conf-wrap"><div className="conf-bg"><div className="conf-fill" style={{width:`${current.confidence}%`,background:`linear-gradient(90deg,${ac}88,${ac})`}}/></div><span className="conf-pct" style={{color:ac}}>{current.confidence}%</span></div>
+          </div>
+          <div className="sec-card"><div className="sec-lbl">Market Outlook</div><p style={{fontSize:".76rem",color:"#334155",lineHeight:1.6}}>{current.summary}</p></div>
+          <div><div className="sec-lbl" style={{marginBottom:".38rem"}}>Technical Indicators</div><div className="grid2">{Object.entries(current.indicators||{}).map(([k,ind])=>(<div key={k} className="ind-card"><div className="ind-nm">{IND_L[k]||k}</div><div className="ind-v">{typeof ind.value==="number"?ind.value.toFixed(1):ind.value}</div><div className="ind-i">{ind.interpretation}</div></div>))}</div></div>
+          <div className="grid2">{[{label:"Catalysts",items:current.catalysts,color:"#16A34A"},{label:"Risks",items:current.risks,color:"#DC2626"}].map(s=>(<div key={s.label} className="sec-card"><div className="sec-lbl">{s.label}</div>{s.items?.map((item,i)=><div key={i} className="li"><span style={{color:s.color}}>·</span>{item}</div>)}</div>))}</div>
+        </>
+      )}
+
+      {current&&subTab==="scalping"&&(
+        <>
+          <div className="warn-box"><span style={{fontSize:".82rem",flexShrink:0}}>⚠️</span><p className="warn-t">AI-generated setups for informational purposes only. Not financial advice. Always use proper risk management.</p></div>
+          {current.dayTrades?.length>0?current.dayTrades.map((trade,i)=>(
+            <div key={i} className="trade-card">
+              <div className="trade-hdr" style={{background:trade.direction==="LONG"?"#F0FDF4":"#FFF1F2"}}>
+                <div style={{display:"flex",alignItems:"center",gap:".38rem"}}><span className="trade-dir" style={{color:trade.direction==="LONG"?"#16A34A":"#DC2626"}}>{trade.direction==="LONG"?"▲ LONG":"▼ SHORT"}</span><span className="trade-sty">{trade.style}</span></div>
+                <div style={{display:"flex",gap:".28rem",alignItems:"center"}}><span style={{fontSize:".56rem",color:"#64748B"}}>R:R</span><span style={{fontFamily:"'DM Mono',monospace",fontSize:".66rem",fontWeight:700,color:trade.direction==="LONG"?"#16A34A":"#DC2626"}}>{trade.riskReward}</span></div>
+              </div>
+              <div className="trade-lvls">
+                <div><div className="lv-lbl" style={{color:"#64748B"}}>Entry</div><div className="lv-val">{fP(trade.entryLow,inst.unit)}</div><div className="lv-sub">–{fP(trade.entryHigh,inst.unit)}</div></div>
+                <div><div className="lv-lbl" style={{color:"#DC2626"}}>Stop Loss</div><div className="lv-val" style={{color:"#DC2626"}}>{fP(trade.stopLoss,inst.unit)}</div><div className="lv-sub">{inst.unit}</div></div>
+                <div><div className="lv-lbl" style={{color:"#16A34A"}}>TP1/TP2</div><div className="lv-val" style={{color:"#16A34A"}}>{fP(trade.tp1,inst.unit)}</div><div className="lv-sub" style={{color:"#059669"}}>{fP(trade.tp2,inst.unit)}</div></div>
+              </div>
+              <div className="ctx-row">
+                {trade.volumeContext&&<span className="ctx-tag">📊 {trade.volumeContext}</span>}
+                {trade.volatilityContext&&<span className="ctx-tag">⚡ {trade.volatilityContext}</span>}
+                {trade.timingContext&&<span className="ctx-tag">🕐 {trade.timingContext}</span>}
+              </div>
+              {trade.note&&<div className="trade-note">{trade.note}</div>}
+            </div>
+          )):<div style={{textAlign:"center",padding:"1.5rem",color:"#94A3B8",fontSize:".75rem"}}>No setups in this pass.</div>}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ChatView({inst}){
+  const [messages,setMessages]=useState([]);
+  const [input,setInput]=useState("");
+  const [loading,setLoading]=useState(false);
+  const bottomRef=useRef(null);
+  const histRef=useRef([]);
+  useEffect(()=>{const w=inst?`Analysis running for ${inst.name}. Ask about entries, sessions, or risk.`:`Select an instrument or ask a general trading question.`;setMessages([{role:"assistant",text:w}]);histRef.current=[];},[inst?.id]);
+  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[messages]);
+  const send=async()=>{
+    if(!input.trim()||loading)return;
+    const u=input.trim();setInput("");
+    setMessages(p=>[...p,{role:"user",text:u}]);
+    histRef.current=[...histRef.current,{role:"user",content:u}];
+    setLoading(true);
+    try{
+      const sys=inst?`Expert trader. ${inst.name} (${inst.symbol}, ~${inst.price} ${inst.unit}). Concise, actionable. Max 3 sentences.`:`Expert commodity and index trader. Concise. Max 3 sentences.`;
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,system:sys,messages:histRef.current})});
+      const data=await res.json();
+      const text=data.content?.map(b=>b.text||"").join("")||"No response.";
+      histRef.current=[...histRef.current,{role:"assistant",content:text}];
+      setMessages(p=>[...p,{role:"assistant",text}]);
+    }catch{setMessages(p=>[...p,{role:"assistant",text:"Connection error."}]);}
+    finally{setLoading(false);}
+  };
+  const Q=inst?[`Best entry for ${inst.name}?`,"Session timing?","Stop width?","Scalp or swing?"]:["Best instrument?","Highest volatility?","Session tips?","Risk management?"];
+  return(
+    <div className="chat-wrap">
+      <div className="chat-msgs">
+        {messages.map((m,i)=>(<div key={i} className={`msg ${m.role==="user"?"user":"ai"}`}>{m.role==="assistant"&&<div className="msg-lbl">AI Analyst</div>}{m.text}</div>))}
+        {loading&&<div className="ld" style={{padding:".38rem .65rem"}}><span/><span/><span/></div>}
+        <div ref={bottomRef}/>
+      </div>
+      <div className="quick-row">{Q.map(q=><button key={q} className="quick-btn" onClick={()=>setInput(q)}>{q}</button>)}</div>
+      <div className="cinput-row">
+        <input className="cinput" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Ask the AI analyst…"/>
+        <button className="csend" onClick={send} disabled={loading||!input.trim()} style={{background:input.trim()&&!loading?"#0F172A":"#E2E8F0",color:input.trim()&&!loading?"#fff":"#94A3B8"}}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+let tid=0;
+function App(){
+  const [selected,setSelected]=useState(null);
+  const [tf,setTf]=useState("1D");
+  const [tab,setTab]=useState("analysis");
+  const [notifOn,setNotifOn]=useState(true);
+  const [toasts,setToasts]=useState([]);
+  const [hasNew,setHasNew]=useState(false);
+  const [showW,setShowW]=useState(false);
+  const [wPairs,setWPairs]=useState([null,null]);
+  const [allA,setAllA]=useState({});
+  const inst=INSTRUMENTS.find(c=>c.id===selected)||null;
+
+  const handleNewSignal=useCallback(({title,body,color})=>{
+    if(!notifOn)return;
+    const id=++tid,ts=Date.now();
+    setToasts(p=>[...p.slice(-4),{id,title,body,color,ts}]);
+    setHasNew(true);
+    setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),7000);
+  },[notifOn]);
+
+  useEffect(()=>{if(inst)setWPairs(p=>{const n=[...p];n[0]=inst;return n;});},[inst?.id]);
+  const dismiss=id=>setToasts(p=>p.filter(t=>t.id!==id));
+
+  return(
+    <div id="root">
+      <div className="toast-wrap">
+        {toasts.map(t=>(<div key={t.id} className="toast" style={{borderColor:`${t.color}44`}}><div className="t-dot" style={{background:t.color}}/><div style={{flex:1}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span className="t-title">{t.title}</span><button className="t-x" onClick={()=>dismiss(t.id)}>✕</button></div><div className="t-body">{t.body}</div><div className="t-time">{fmtT(t.ts)}</div></div></div>))}
+      </div>
+      {showW&&<Widget pairs={wPairs} analyses={allA} onClose={()=>setShowW(false)}/>}
+      <div className="nav">
+        <div className="nav-logo"><div className="nav-icon">◈</div><span className="nav-title">TradeSim <span>AI</span></span></div>
+        <div className="nav-right">
+          <div className="live-dot"/><span className="live-lbl">LIVE</span>
+          <button className={`notif-btn ${notifOn?"on":""}`} onClick={()=>{setNotifOn(p=>!p);setHasNew(false);}}>
+            <span style={{filter:notifOn?"none":"grayscale(1) opacity(.5)"}}>🔔</span>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:".58rem",fontWeight:700,color:notifOn?"#D97706":"#94A3B8"}}>{notifOn?"ON":"OFF"}</span>
+            {hasNew&&notifOn&&<span className="notif-dot"/>}
+          </button>
+          <button className={`widget-btn ${showW?"active":""}`} onClick={()=>setShowW(p=>!p)}>{showW?"✕ WGT":"⊞ WGT"}</button>
+        </div>
+      </div>
+      <div className="sidebar">
+        {GROUPS.map(g=>(<div key={g.label}><div className="grp-lbl">{g.label}</div><div className="pills-row">{INSTRUMENTS.filter(c=>g.ids.includes(c.id)).map(c=>{const up=c.change>=0,isSel=selected===c.id;return(<div key={c.id} className={`pill ${isSel?"selected":""}`} style={{borderColor:isSel?c.color:"#E2E8F0",background:isSel?c.bg:"#fff"}} onClick={()=>setSelected(c.id)}><div className="pname">{c.name}</div><div className="pchg" style={{color:up?"#16A34A":"#DC2626"}}>{up?"▲":"▼"}{Math.abs(c.change).toFixed(2)}%</div></div>);}</div></div>))}
+      </div>
+      <div className="content">
+        {tab==="analysis"?<AnalysisView inst={inst} tf={tf} onTf={setTf} notifOn={notifOn} onNewSignal={handleNewSignal}/>:<ChatView inst={inst}/>}
+      </div>
+      <div className="bottom-tabs">
+        {[["analysis","📊","Analysis"],["chat","💬","Ask AI"]].map(([t,icon,label])=>(<button key={t} className={`tab-btn ${tab===t?"active":""}`} onClick={()=>setTab(t)}><span className="ticon">{icon}</span><span>{label}</span></button>))}
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+<script>
+if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW failed:',e));});}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  const b=document.createElement('div');
+  b.id='ib';b.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#0F172A;color:#fff;padding:.55rem 1.1rem;border-radius:999px;font-size:.7rem;font-family:Inter,sans-serif;z-index:9999;display:flex;gap:.65rem;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:nowrap;';
+  b.innerHTML='<span>📲 Install TradeSim AI</span><button onclick="window._install()" style="padding:.22rem .65rem;border-radius:999px;background:#2563EB;color:#fff;border:none;font-size:.68rem;font-weight:700;cursor:pointer;">Install</button><button onclick="document.getElementById(\'ib\').remove()" style="background:none;border:none;color:rgba(255,255,255,.45);cursor:pointer;font-size:.85rem;">✕</button>';
+  document.body.appendChild(b);
+  setTimeout(()=>b?.remove(),12000);
+});
+window._install=()=>{deferredPrompt?.prompt();deferredPrompt?.userChoice.then(()=>{document.getElementById('ib')?.remove();deferredPrompt=null;});};
+</script>
+</body>
+</html>
